@@ -5,7 +5,8 @@ services:
     - mysql
 env:
   - CXX=g++-4.8
-
+mono:
+  - latest
 addons:
   apt:
     sources:
