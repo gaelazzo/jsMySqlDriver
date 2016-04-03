@@ -8,5 +8,5 @@ env:
 
 before_install:
 - mysql -e "create database IF NOT EXISTS test;" -uroot
-
+- npm install -g grunt-cli
 install: npm install
