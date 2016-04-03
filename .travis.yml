@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - "5"
+services:
+    - mysql
+env:
+  - CXX=g++-4.8
+
+before_install:
+ - mysql -e "create database IF NOT EXISTS test;" -uroot
+
+ install: npm install
