@@ -9,4 +9,6 @@ env:
 before_install:
 - mysql -e "create database IF NOT EXISTS test;" -uroot
 - npm install -g grunt-cli
+- export USERNAME=root
+- sudo bash -c 'bash <(wget -qO- https://raw.githubusercontent.com/tjanczuk/edge/master/tools/debian_ubuntu_clean_install.sh)'
 install: npm install
