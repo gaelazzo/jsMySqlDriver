@@ -24,4 +24,5 @@ install:
   - sudo apt-get update
   - sudo apt-get install mono-devel
   - npm install -g grunt-cli
+  - npm install edge
   - npm install
