@@ -16,10 +16,8 @@ addons:
 before_install:
 - mysql -e "create database IF NOT EXISTS test;" -uroot
 - npm install -g grunt-cli
-- export USERNAME=root
-- sudo bash -c 'bash <(wget -qO- https://raw.githubusercontent.com/tjanczuk/edge/master/tools/debian_ubuntu_clean_install.sh)'
 
-install: npm install
+install:
   - sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
   - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy main' >> /etc/apt/sources.list.d/mono-xamarin.list"
   - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main' >> /etc/apt/sources.list.d/mono-xamarin.list"
