@@ -12,7 +12,7 @@
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
     "JQDeferred": "^2.1.0",
     "edge": "latest",
-    "edge-sql": "git://github.com/gaelazzo/edge-sql"
+    "edge-sql-maxpower": "git://github.com/gaelazzo/edge-sql"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

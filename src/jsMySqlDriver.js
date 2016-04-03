@@ -8,6 +8,7 @@ var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
 var edge = require('edge');
+var edgeMax = require('edge-sql-maxpower');
 
 /**
  * Interface to Microsoft Sql Server
