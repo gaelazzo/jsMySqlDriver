@@ -7,6 +7,6 @@ env:
   - CXX=g++-4.8
 
 before_install:
- - mysql -e "create database IF NOT EXISTS test;" -uroot
+- mysql -e "create database IF NOT EXISTS test;" -uroot
 
- install: npm install
+install: npm install
