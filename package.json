@@ -12,7 +12,7 @@
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
     "JQDeferred": "^2.1.0",
     "edge": "latest",
-    "edge-sql-maxpower": "git://github.com/gaelazzo/edge-sql"
+    "edge-sql-maxpower": "git://github.com/gaelazzo/edge-sql.git"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -20,7 +20,7 @@
     "grunt-contrib-yuidoc": "1.0.0",
     "jasmine-core": "2.2.0",
     "jasmine-node": "2.0.0-beta4",
-    "grunt-jasmine-node-new": "git://github.com/gaelazzo/grunt-jasmine-node",
+    "grunt-jasmine-node-new": "git://github.com/gaelazzo/grunt-jasmine-node.git",
     "jasmine-collection-matchers":"*",
 
     "load-grunt-tasks": "^3.4.1",
