@@ -4,6 +4,7 @@
 var $dq = require('jsDataQuery');
 var _ = require('lodash');
 var fs = require("fs");
+var path = require("path");
 
 /**
  * *****************************************************************************************
@@ -17,7 +18,7 @@ var fs = require("fs");
  *  }
  */
 //PUT THE  FILENAME OF YOUR FILE HERE:
-var configName = 'test/db.json';
+var configName = path.join('test','db.json');
 var dbConfig;
 if (typeof(TRAVIS)!== 'undefined'){
     dbConfig = { "server": "127.0.0.1 ",
@@ -73,6 +74,7 @@ describe('MySqlDriver ', function () {
     beforeEach(function (done) {
         sqlConn = getConnection('good');
         sqlConn.open().done(function () {
+            console.log('YES good');
                 done();
             })
             .fail(function (err) {
@@ -90,13 +92,17 @@ describe('MySqlDriver ', function () {
 
 
     describe('setup dataBase', function () {
+        console.log('setup dataBase');
         it('should run the setup script', function (done) {
-            sqlConn.run(fs.readFileSync('test/setup.sql').toString())
+            console.log('to run script');
+            sqlConn.run(fs.readFileSync(path.join('test','setup.sql')).toString())
                 .done(function () {
+                    console.log('setup ok');
                     expect(true).toBeTruthy();
                     done();
                 })
                 .fail(function (res) {
+                    console.log('setup fail');
                     expect(res).toBeUndefined();
                     done();
                 });
@@ -643,7 +649,7 @@ describe('MySqlDriver ', function () {
 
     describe('clear dataBase', function () {
         it('should run the destroy script', function (done) {
-            sqlConn.run(fs.readFileSync('test/destroy.sql').toString())
+            sqlConn.run(fs.readFileSync(path.join('test','destroy.sql')).toString())
                 .done(function () {
                     expect(true).toBeTruthy();
                     done();

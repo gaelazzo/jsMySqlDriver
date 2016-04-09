@@ -7,22 +7,24 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "lodash": "~4.6.1",
+    "JQDeferred": "^2.1.0",
+    "edge": "~5.0.0",
+    "edge-sql-maxpower": "git://github.com/gaelazzo/edge-sql",
     "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
-    "JQDeferred": "^2.1.0",
-    "edge": "latest",
-    "edge-sql-maxpower": "git://github.com/gaelazzo/edge-sql"
+    "lodash": "~4.6.1"
   },
   "devDependencies": {
-    "grunt": "~0.4.5",
+    "karma": "~0.13.22",
+    "karma-teamcity-reporter": "^0.2.2",
+    "grunt": "~1.0.0",
     "grunt-contrib-watch": "1.0.0",
     "grunt-contrib-yuidoc": "1.0.0",
     "jasmine-core": "2.2.0",
     "jasmine-node": "2.0.0-beta4",
-    "grunt-jasmine-node-new": "https://github.com/gaelazzo/grunt-jasmine-node",
-    "jasmine-collection-matchers":"*",
-
+     "jasmine-reporters":"2.1.1",
+    "grunt-jasmine-node": "0.3.1",
+    "jasmine-collection-matchers": "*",
     "load-grunt-tasks": "^3.4.1",
     "time-grunt": "^1.0.0"
   },

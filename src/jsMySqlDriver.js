@@ -135,6 +135,7 @@ function Connection(options) {
      */
     this.opt = _.clone(options);
     this.sqlCompiler = this.opt.sqlCompiler || 'sql-maxpower';
+    console.log(this.sqlCompiler);
     this.edgeHandler = null;
     /**
      * Indicates the open/closed state of the underlying connection
@@ -176,13 +177,13 @@ function Connection(options) {
     this.isolationLevel = null;
 
     this.adoString = 'Server=' + this.opt.server +
-        ";database=" + this.opt.database + ';' +
+        ";Database=" + this.opt.database + ';' +
         (this.opt.useTrustedConnection ?
                 "IntegratedSecurity=yes;uid=auth_windows;" :
-                "uid=" + this.opt.user + ";pwd=" + this.opt.pwd + ";") +
+                "User ID=" + this.opt.user + ";Password=" + this.opt.pwd + ";") +
             //"WorkStation ID =" + Environment.MachineName.ToUpper() +
-        "Pooling=False;" +
-        "Connection Timeout=600;Allow User Variables=True;";
+        "Pooling=False;" ;
+    console.log(this.adoString);
 }
 
 Connection.prototype = {
@@ -196,6 +197,7 @@ Connection.prototype = {
  * @returns {*}
  */
 Connection.prototype.useSchema = function (schema) {
+    console.log('useSchema');
     this.schema = schema;
     return Deferred().resolve().promise();
 };
@@ -214,6 +216,7 @@ Connection.prototype.destroy = function () {
  * @returns {Connection}
  */
 Connection.prototype.clone = function () {
+    console.log('clone');
     return new Connection({connectionString: this.connectionString});
 };
 
@@ -290,8 +293,10 @@ Connection.prototype.open = function () {
     }
     this.edgeOpen()
         .done(function () {
+            console.log('done received');
             that.isOpen = true;
             if (that.schema === that.defaultSchema) {
+                console.log('schema ok');
                 connDef.resolve(that);
                 return;
             }
@@ -305,6 +310,7 @@ Connection.prototype.open = function () {
                 });
         })
         .fail(function (err) {
+            console.log('open fail'+err);
             connDef.reject(err);
         });
     return connDef.promise();
@@ -360,14 +366,18 @@ Connection.prototype.edgeOpen = function () {
             });
     edgeOpenInternal({}, function (error, result) {
         if (error) {
+            console.log("ERROR edgeOpenInternal ")
+            console.log(error);
             def.reject(null);
             return;
         }
         if (result) {
+            console.log('Resolving edgeOpenInternal');
             that.edgeHandler = result;
             def.resolve(that);
             return;
         }
+        console.log('shouldnt reach here');
         def.reject('shouldnt reach here');
     });
     return def.promise();
@@ -507,14 +517,18 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
  * @returns {*}
  */
 Connection.prototype.updateBatch = function (query) {
+    console.log('updateBatch start');
     var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery'},
             this.getDbConn())),
         def = Deferred();
     edgeQuery({}, function (error, result) {
+        console.log('updateBatch some');
         if (error) {
+            console.log('updateBatch error');
             def.reject(error);
             return;
         }
+        console.log('updateBatch resolve');
         def.resolve(result);
     });
     return def.promise();
@@ -967,15 +981,19 @@ Connection.prototype.run = function(script) {
 
     function loopScript() {
         if (index === blocks.length) {
+            console.log('run resolved');
             def.resolve();
         }
         else {
+            console.log(blocks[index]);
             that.updateBatch(blocks[index])
                 .done(function () {
+                    console.log('run index '+index);
                     index += 1;
                     loopScript();
                 })
                 .fail(function (err) {
+                    console.log('run fail');
                     def.reject(err);
                 });
         }
