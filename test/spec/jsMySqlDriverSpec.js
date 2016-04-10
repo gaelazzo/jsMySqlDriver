@@ -20,8 +20,9 @@ var path = require("path");
 //PUT THE  FILENAME OF YOUR FILE HERE:
 var configName = path.join('test','db.json');
 var dbConfig;
-if (typeof(TRAVIS)!== 'undefined'){
-    dbConfig = { "server": "127.0.0.1 ",
+console.log(process);
+if (process.env.TRAVIS){
+    dbConfig = { "server": "127.0.0.1",
         "dbName": "test",
         "user": "root",
         "pwd": ""
