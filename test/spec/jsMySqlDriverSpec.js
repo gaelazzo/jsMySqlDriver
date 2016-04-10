@@ -74,7 +74,6 @@ describe('MySqlDriver ', function () {
     beforeEach(function (done) {
         sqlConn = getConnection('good');
         sqlConn.open().done(function () {
-            console.log('YES good');
                 done();
             })
             .fail(function (err) {
@@ -92,17 +91,13 @@ describe('MySqlDriver ', function () {
 
 
     describe('setup dataBase', function () {
-        console.log('setup dataBase');
         it('should run the setup script', function (done) {
-            console.log('to run script');
             sqlConn.run(fs.readFileSync(path.join('test','setup.sql')).toString())
                 .done(function () {
-                    console.log('setup ok');
                     expect(true).toBeTruthy();
                     done();
                 })
                 .fail(function (res) {
-                    console.log('setup fail');
                     expect(res).toBeUndefined();
                     done();
                 });
