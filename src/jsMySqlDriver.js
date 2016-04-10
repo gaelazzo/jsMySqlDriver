@@ -8,7 +8,6 @@ var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
 var edge = require('edge');
-var edgeMax = require('edge-sql-maxpower');
 
 /**
  * Interface to Microsoft Sql Server
@@ -249,9 +248,9 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
  */
 Connection.prototype.getDbConn = function () {
     if (this.edgeHandler !== null) {
-        return {handler: this.edgeHandler};
+        return {handler: this.edgeHandler,driver:'mySql'};
     } else {
-        return {connectionString: this.adoString};
+        return {connectionString: this.adoString,driver:'mySql'};
     }
 };
 
@@ -385,7 +384,8 @@ Connection.prototype.edgeClose = function () {
             {
                 handler: that.edgeHandler,
                 source: 'close',
-                cmd: 'close'
+                cmd: 'close',
+                driver:'mysql'
             });
     edgeClose({}, function (error, result) {
         if (error) {
