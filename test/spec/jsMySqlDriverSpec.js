@@ -77,7 +77,7 @@ describe('MySqlDriver ', function () {
                 done();
             })
             .fail(function (err) {
-                console.log(err);
+                console.log('Error failing '+err);
                 done();
             });
     }, 30000);

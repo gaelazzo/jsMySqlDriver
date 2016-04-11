@@ -299,10 +299,11 @@ Connection.prototype.open = function () {
                 })
                 .fail(function (err) {
                     that.close();
-                    connDef.reject(err);
+                    connDef.reject('schema fail'+err);
                 });
         })
         .fail(function (err) {
+            connDef.reject('open fail'+err);
             connDef.reject(err);
         });
     return connDef.promise();
@@ -358,7 +359,7 @@ Connection.prototype.edgeOpen = function () {
             });
     edgeOpenInternal({}, function (error, result) {
         if (error) {
-            def.reject(null);
+            def.reject(error);
             return;
         }
         if (result) {
