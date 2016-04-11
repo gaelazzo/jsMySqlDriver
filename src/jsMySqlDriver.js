@@ -1,4 +1,3 @@
-
 'use strict';
 /**
  * @property Deferred
@@ -11,7 +10,7 @@ var edge = require('edge');
 
 /**
  * Interface to Microsoft Sql Server
- * @module sqlServerDriver
+ * @module mySqlDriver
  */
 
 /**
@@ -44,7 +43,7 @@ function simpleObjectify(colNames, rows) {
         colIndex,
         value,
         row;
-    while ( --rowIndex >= 0) {
+    while (--rowIndex >= 0) {
         value = {};
         row = rows[rowIndex];
         colIndex = colLength;
@@ -177,8 +176,8 @@ function Connection(options) {
     this.adoString = 'Server=' + this.opt.server +
         ";database=" + this.opt.database + ';' +
         (this.opt.useTrustedConnection ?
-            "IntegratedSecurity=yes;uid=auth_windows;" :
-        "uid=" + this.opt.user + ";pwd=" + this.opt.pwd + ";") +
+                "IntegratedSecurity=yes;uid=auth_windows;" :
+                "uid=" + this.opt.user + ";pwd=" + this.opt.pwd + ";") +
         //"WorkStation ID =" + Environment.MachineName.ToUpper() +
         "Pooling=False;" +
         "Connection Timeout=600;Allow User Variables=True;";
@@ -190,7 +189,7 @@ Connection.prototype = {
 
 /**
  * Change current used schema for this connection. MySql does not support schemas
- * @method useSchema  
+ * @method useSchema
  * @param {string} schema
  * @returns {*}
  */
@@ -248,9 +247,9 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
  */
 Connection.prototype.getDbConn = function () {
     if (this.edgeHandler !== null) {
-        return {handler: this.edgeHandler,driver:'mySql'};
+        return {handler: this.edgeHandler, driver: 'mySql'};
     } else {
-        return {connectionString: this.adoString,driver:'mySql'};
+        return {connectionString: this.adoString, driver: 'mySql'};
     }
 };
 
@@ -265,11 +264,11 @@ Connection.prototype.checkLogin = function (login, password) {
         def = Deferred(),
         testConn = new Connection(opt);
     testConn.open()
-        .done(function (res) {
+        .done(function () {
             def.resolve(true);
             testConn.destroy();
         })
-        .fail(function (res) {
+        .fail(function () {
             def.resolve(false);
         });
     return def.promise();
@@ -355,7 +354,7 @@ Connection.prototype.edgeOpen = function () {
                 source: 'open',
                 connectionString: this.adoString,
                 cmd: 'open',
-                driver:'mySql'
+                driver: 'mySql'
             });
     edgeOpenInternal({}, function (error, result) {
         if (error) {
@@ -385,7 +384,7 @@ Connection.prototype.edgeClose = function () {
                 handler: that.edgeHandler,
                 source: 'close',
                 cmd: 'close',
-                driver:'mysql'
+                driver: 'mySql'
             });
     edgeClose({}, function (error, result) {
         if (error) {
@@ -414,7 +413,7 @@ Connection.prototype.queryLines = function (query, raw) {
     var def = Deferred(),
         lastMeta,
         callback = function (data, resCallBack) {
-            if (data.resolve){
+            if (data.resolve) {
                 def.resolve();
                 return;
             }
@@ -470,7 +469,6 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
         packetSize = packSize || 0,
         lastMeta,
         currentSet = -1,
-        table,
         callback = function (data, resCallBack) {
             if (data.meta) {
                 currentSet += 1;
@@ -491,7 +489,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
     edgeQuery({}, function (error, result) {
         var i;
         if (error) {
-            def.reject(error+' running '+query);
+            def.reject(error + ' running ' + query);
             return;
         }
         def.resolve();
@@ -508,7 +506,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
  */
 Connection.prototype.updateBatch = function (query) {
     var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery'},
-            this.getDbConn())),
+        this.getDbConn())),
         def = Deferred();
     edgeQuery({}, function (error, result) {
         if (error) {
@@ -608,7 +606,7 @@ Connection.prototype.rollBack = function () {
         this.transError = true;
         return Deferred().resolve().promise();
     }
-    if (this.transAnnidationLevel===0){
+    if (this.transAnnidationLevel === 0) {
         return Deferred().reject("Trying to rollBack but no transaction has been open").promise();
     }
 
@@ -712,9 +710,9 @@ Connection.prototype.getInsertCommand = function (table, columns, values) {
 Connection.prototype.getUpdateCommand = function (options) {
     var cmd = 'UPDATE ' + options.table + ' SET ' +
         _.map(_.zip(options.columns,
-                _.map(options.values, function (val) {
-                    return formatter.quote(val, false);
-                })),
+            _.map(options.values, function (val) {
+                return formatter.quote(val, false);
+            })),
             function (cv) {
                 return cv[0] + '=' + cv[1];
             }).join();
@@ -727,12 +725,12 @@ Connection.prototype.getUpdateCommand = function (options) {
 
 /**
  * evaluates the sql command to call aSP with a list of parameters each of which is an object having:
- *  value,  
+ *  value,
  *  optional 'sqltype' name compatible with the used db, necessary if is an output parameter
  *  optional out: true if it is an output parameter
  *  The SP eventually returns a collection of tables and at the end an object with a property for each output parameter
  *  of the SP
- *  Unfortunately there is NO named parameter calling in MySql so it will call the SP by param order 
+ *  Unfortunately there is NO named parameter calling in MySql so it will call the SP by param order
  * @method callSPWithNamedParams
  * @param {object} options
  * @param {string} options.spName
@@ -740,29 +738,27 @@ Connection.prototype.getUpdateCommand = function (options) {
  * @param {boolean} [options.skipSelect]    when true, the select of output parameter is omitted
  * @returns {String}
  */
-Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
- var i = 0,
-     names = {},
-     cmd = '',
-     outList = _.map(
-         _.filter(options.paramList, {out: true}),
-         function (p) {
-             names[p.name] = '@' + p.name;
-             i += 1;
-             return names[p.name] + ' ' + p.sqltype;
-         }
-     ).join(',');
+Connection.prototype.getSqlCallSPWithNamedParams = function (options) {
+    var names = {},
+        cmd = '',
+        outList = _.map(
+            _.filter(options.paramList, {out: true}),
+            function (p) {
+                names[p.name] = '@' + p.name;
+                return names[p.name] + ' ' + p.sqltype;
+            }
+        ).join(',');
     cmd += 'CALL  ' + options.spName + '(' +
         _.map(options.paramList, function (p) {
             if (p.name) {
                 if (p.out) {
-                    return '@' + p.name ;
+                    return '@' + p.name;
                 }
             }
             return formatter.quote(p.value);
-        }).join(',')+')';
+        }).join(',') + ')';
 
-    if (outList && options.skipSelect!==true) {
+    if (outList && options.skipSelect !== true) {
         cmd += ';SELECT ' +
             _.map(
                 _.filter(options.paramList, {out: true}),
@@ -772,7 +768,7 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
             ).join(',');
     }
     return cmd;
-}
+};
 
 /**
  * call SP with a list of parameters each of which is an object having:
@@ -797,7 +793,7 @@ Connection.prototype.callSPWithNamedParams = function (options) {
             spDef.notify(result);
         })
         .done(function (result) {
-            if (_.some(options.paramList,{out:true})) {
+            if (_.some(options.paramList, {out: true})) {
                 //An object is needed for output row
                 var allVar = options.raw ? simpleObjectify(result[0].meta, result[0].rows) : result[0];
                 _.each(_.keys(allVar), function (k) {
@@ -845,19 +841,20 @@ Connection.prototype.callSPWithNamedParams = function (options) {
  * @returns {TableDescriptor}
  */
 Connection.prototype.tableDescriptor = function (tableName) {
-    var res = Deferred(),
+    var res  = Deferred(),
         that = this;
     this.queryBatch(
-        'select 1 as dbo, '+
-        'case when T.table_type=\'BASE TABLE\' then \'U\' else \'V\' end as xtype, '+
-        'C.COLUMN_NAME as name, C.DATA_TYPE as \'type\', C.CHARACTER_MAXIMUM_LENGTH as max_length,'+
-        'C.NUMERIC_PRECISION as \'precision\', C.NUMERIC_SCALE as \'scale\', '+
-        'case when C.IS_NULLABLE = \'YES\' then 1 else 0 end as \'is_nullable\', '+
-        'case when C.COLUMN_KEY=\'PRI\' then 1 else 0 end as \'pk\' '+
-        '  from INFORMATION_SCHEMA.tables T '+
-        ' JOIN INFORMATION_SCHEMA.columns C ON C.table_schema=T.table_schema and C.table_name=T.table_name '+
-        ' where T.table_schema='+that.database+' and T.table_name=\'' + tableName+'\'')
-        .then(function (result) {
+        'select 1 as dbo, ' +
+        'case when T.table_type=\'BASE TABLE\' then \'U\' else \'V\' end as xtype, ' +
+        'C.COLUMN_NAME as name, C.DATA_TYPE as \'type\', C.CHARACTER_MAXIMUM_LENGTH as max_length,' +
+        'C.NUMERIC_PRECISION as \'precision\', C.NUMERIC_SCALE as \'scale\', ' +
+        'case when C.IS_NULLABLE = \'YES\' then 1 else 0 end as \'is_nullable\', ' +
+        'case when C.COLUMN_KEY=\'PRI\' then 1 else 0 end as \'pk\' ' +
+        '  from INFORMATION_SCHEMA.tables T ' +
+        ' JOIN INFORMATION_SCHEMA.columns C ON C.table_schema=T.table_schema and C.table_name=T.table_name ' +
+        ' where T.table_schema=' + that.database + ' and T.table_name=\'' + tableName + '\''
+    )
+    .then(function (result) {
             if (result.length === 0) {
                 res.reject('Table named ' + tableName + ' does not exist in ' + that.server + ' - ' + that.database);
                 return;
@@ -934,7 +931,7 @@ Connection.prototype.getFormatter = function () {
  * @param {string} script
  * @returns {*}
  */
-Connection.prototype.run = function(script) {
+Connection.prototype.run = function (script) {
     var os = require('os');
     //noinspection JSUnresolvedVariable
     var lines = script.split(os.EOL);
@@ -985,7 +982,7 @@ Connection.prototype.run = function(script) {
     loopScript();
 
     return def.promise();
-}
+};
 module.exports = {
     'Connection': Connection
 };
