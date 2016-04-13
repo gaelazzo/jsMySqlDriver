@@ -422,6 +422,7 @@ describe('MySqlDriver ', function () {
                 });
         });
 
+        //CREATE PROCEDURE testSP2 (IN esercizio int,IN meseinizio int,IN mess varchar(200),IN defparam decimal(19,2) )
         it('callSPWithNamedParams should FAIL  - param order does matter - named params not supported', function (done) {
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP2',
@@ -436,7 +437,10 @@ describe('MySqlDriver ', function () {
                     expect(x).toBeUndefined();
                 })
                 .done(function (res) {
-                    expect(true).toBe(false);
+                    expect(_.isArray(res)).toBeTruthy();
+                    expect(res.length).toBe(1);
+                    var o = res[0];
+                    expect(o.newmess).toBe('2013');
                     done();
                 })
                 .fail(function (err) {
