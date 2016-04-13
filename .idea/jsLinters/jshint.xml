@@ -29,7 +29,7 @@
     <option globalstrict="false" />
     <option immed="false" />
     <option iterator="false" />
-    <option jasmine="false" />
+    <option jasmine="true" />
     <option jquery="false" />
     <option lastsemic="false" />
     <option latedef="false" />
