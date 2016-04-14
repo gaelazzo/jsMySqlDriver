@@ -864,7 +864,7 @@ Connection.prototype.tableDescriptor = function (tableName) {
             'case when C.COLUMN_KEY=\'PRI\' then 1 else 0 end as \'pk\' ' +
             '  from INFORMATION_SCHEMA.tables T ' +
             ' JOIN INFORMATION_SCHEMA.columns C ON C.table_schema=T.table_schema and C.table_name=T.table_name ' +
-            ' where T.table_schema=' + that.opt.database + ' and T.table_name=\'' + tableName + '\''
+            ' where T.table_schema=\'' + that.opt.database + '\' and T.table_name=\'' + tableName + '\''
     )
         .then(function (result) {
             if (result.length === 0) {
