@@ -633,13 +633,14 @@ Connection.prototype.rollBack = function () {
  */
 Connection.prototype.getSelectCommand = function (options) {
     var selCmd = 'SELECT ';
-    if (options.top) {
-        selCmd += 'TOP ' + options.top + ' ';
-    }
     selCmd += options.columns + ' FROM ' + options.tableName;
     if (options.filter && !options.filter.isTrue) {
         selCmd += " WHERE " + formatter.conditionToSql(options.filter, options.environment);
     }
+    if (options.top) {
+        selCmd += ' LIMIT ' + options.top + ' ';
+    }
+
     if (options.orderBy) {
         selCmd += " ORDER BY " + options.orderBy;
     }
