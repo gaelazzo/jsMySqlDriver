@@ -1,12 +1,12 @@
 'use strict';
 /**
  * @property Deferred
- * @type {Deferred}
+ * @type {defer}
  */
-var Deferred = require("JQDeferred");
-var _ = require('lodash');
+var defer     = require("JQDeferred");
+var _         = require('lodash');
 var formatter = require('jsSqlServerFormatter');
-var edge = require('edge');
+var edge      = require('edge');
 
 /**
  * Interface to Microsoft Sql Server
@@ -195,7 +195,7 @@ Connection.prototype = {
  */
 Connection.prototype.useSchema = function (schema) {
     this.schema = schema;
-    return Deferred().resolve().promise();
+    return defer().resolve().promise();
 };
 
 /**
@@ -226,10 +226,10 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
         res,
         mappedIsolationLevels = mapIsolationLevels[isolationLevel];
     if (this.isolationLevel === isolationLevel) {
-        return Deferred().resolve().promise();
+        return defer().resolve().promise();
     }
     if (mappedIsolationLevels === undefined) {
-        return Deferred().reject(isolationLevel + " is not an allowed isolation level").promise();
+        return defer().reject(isolationLevel + " is not an allowed isolation level").promise();
     }
 
     res = this.queryBatch('SET TRANSACTION ISOLATION LEVEL ' + mappedIsolationLevels);
@@ -248,9 +248,8 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
 Connection.prototype.getDbConn = function () {
     if (this.edgeHandler !== null) {
         return {handler: this.edgeHandler, driver: 'mySql'};
-    } else {
-        return {connectionString: this.adoString, driver: 'mySql'};
     }
+    return {connectionString: this.adoString, driver: 'mySql'};
 };
 
 /**
@@ -261,7 +260,7 @@ Connection.prototype.getDbConn = function () {
  */
 Connection.prototype.checkLogin = function (login, password) {
     var opt = _.assign({}, this.opt, {user: login, pwd: password}),
-        def = Deferred(),
+        def = defer(),
         testConn = new Connection(opt);
     testConn.open()
         .done(function () {
@@ -281,7 +280,7 @@ Connection.prototype.checkLogin = function (login, password) {
  * @returns {Connection}
  */
 Connection.prototype.open = function () {
-    var connDef = Deferred(),
+    var connDef = defer(),
         that = this;
     if (this.isOpen) {
         return connDef.resolve(this).promise();
@@ -299,11 +298,11 @@ Connection.prototype.open = function () {
                 })
                 .fail(function (err) {
                     that.close();
-                    connDef.reject('schema fail'+err);
+                    connDef.reject('schema fail' + err);
                 });
         })
         .fail(function (err) {
-            connDef.reject('open fail'+err);
+            connDef.reject('open fail' + err);
             connDef.reject(err);
         });
     return connDef.promise();
@@ -314,31 +313,35 @@ Connection.prototype.open = function () {
  * @method queryBatch
  * @param {string} query
  * @param {boolean} [raw] if true, data are left in raw state and will be objectified by the client
- * @returns {Deferred}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
+ * @returns {defer}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
  */
 Connection.prototype.queryBatch = function (query, raw) {
     var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query}, this.getDbConn())),
-        def = Deferred();
-    edgeQuery({}, function (error, result) {
-        if (error) {
-            def.reject(error + ' running ' + query);
-            return;
-        }
-        var i;
-        for (i = 0; i < result.length - 1; i++) {
-            if (raw) {
-                def.notify(result[i]);
-            } else {
-                def.notify(simpleObjectify(result[i].meta, result[i].rows));
+        def = defer();
+    process.nextTick(function () {
+        edgeQuery({}, function (error, result) {
+
+            if (error) {
+                def.reject(error + ' running ' + query);
+                return;
             }
-        }
-        if (raw) {
-            def.resolve(result[i]);
-        } else {
-            def.resolve(simpleObjectify(result[i].meta, result[i].rows));
-        }
+            var i;
+            for (i = 0; i < result.length - 1; i++) {
+                if (raw) {
+                    def.notify(result[i]);
+                } else {
+                    def.notify(simpleObjectify(result[i].meta, result[i].rows));
+                }
+            }
+
+            if (raw) {
+                def.resolve(result[i]);
+            } else {
+                def.resolve(simpleObjectify(result[i].meta, result[i].rows));
+            }
+        });
     });
-    return def.promise();
+    return def;
 };
 
 /**
@@ -348,7 +351,7 @@ Connection.prototype.queryBatch = function (query, raw) {
  * @returns {*}
  */
 Connection.prototype.edgeOpen = function () {
-    var def = Deferred(),
+    var def = defer(),
         that = this,
         edgeOpenInternal = edge.func(this.sqlCompiler,
             {
@@ -378,7 +381,7 @@ Connection.prototype.edgeOpen = function () {
  * @returns {*}
  */
 Connection.prototype.edgeClose = function () {
-    var def = Deferred(),
+    var def = defer(),
         that = this,
         edgeClose = edge.func(this.sqlCompiler,
             {
@@ -387,7 +390,7 @@ Connection.prototype.edgeClose = function () {
                 cmd: 'close',
                 driver: 'mySql'
             });
-    edgeClose({}, function (error, result) {
+    edgeClose({}, function (error) {
         if (error) {
             def.reject(error);
             return;
@@ -411,9 +414,9 @@ Connection.prototype.edgeClose = function () {
  * @returns {*}
  */
 Connection.prototype.queryLines = function (query, raw) {
-    var def = Deferred(),
+    var def = defer(),
         lastMeta,
-        callback = function (data, resCallBack) {
+        callback = function (data) {
             if (data.resolve) {
                 def.resolve();
                 return;
@@ -466,11 +469,11 @@ Connection.prototype.queryLines = function (query, raw) {
  * @returns {*}
  */
 Connection.prototype.queryPackets = function (query, raw, packSize) {
-    var def = Deferred(),
+    var def = defer(),
         packetSize = packSize || 0,
         lastMeta,
         currentSet = -1,
-        callback = function (data, resCallBack) {
+        callback = function (data) {
             if (data.meta) {
                 currentSet += 1;
             }
@@ -487,8 +490,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
         },
         edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
             this.getDbConn()));
-    edgeQuery({}, function (error, result) {
-        var i;
+    edgeQuery({}, function (error) {
         if (error) {
             def.reject(error + ' running ' + query);
             return;
@@ -508,7 +510,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
 Connection.prototype.updateBatch = function (query) {
     var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery'},
         this.getDbConn())),
-        def = Deferred();
+        def = defer();
     edgeQuery({}, function (error, result) {
         if (error) {
             def.reject(error);
@@ -526,14 +528,13 @@ Connection.prototype.updateBatch = function (query) {
  * @returns {promise}
  */
 Connection.prototype.close = function () {
-    var def = Deferred(),
+    var def = defer(),
         that = this;
     if (this.edgeHandler !== null) {
         return this.edgeClose();
-    } else {
-        that.isOpen = false;
-        def.resolve();
     }
+    that.isOpen = false;
+    def.resolve();
     return def.promise();
 };
 
@@ -546,11 +547,11 @@ Connection.prototype.close = function () {
 Connection.prototype.beginTransaction = function (isolationLevel) {
     var that = this;
     if (!this.isOpen) {
-        return Deferred().reject("Cannot beginTransaction on a closed connection").promise();
+        return defer().reject("Cannot beginTransaction on a closed connection").promise();
     }
     if (this.transAnnidationLevel > 0) {
         this.transAnnidationLevel += 1;
-        return Deferred().resolve().promise();
+        return defer().resolve().promise();
     }
     return this.setTransactionIsolationLevel(isolationLevel)
         .then(function () {
@@ -572,14 +573,14 @@ Connection.prototype.commit = function () {
     var that = this,
         res;
     if (!this.isOpen) {
-        return Deferred().reject("Cannot commit on a closed connection").promise();
+        return defer().reject("Cannot commit on a closed connection").promise();
     }
     if (this.transAnnidationLevel > 1) {
         this.transAnnidationLevel -= 1;
-        return Deferred().resolve().promise();
+        return defer().resolve().promise();
     }
     if (this.transAnnidationLevel === 0) {
-        return Deferred().reject("Trying to commit but no transaction has been open").promise();
+        return defer().reject("Trying to commit but no transaction has been open").promise();
     }
     if (this.transError) {
         return this.rollBack();
@@ -600,15 +601,15 @@ Connection.prototype.rollBack = function () {
     var that = this,
         res;
     if (!this.isOpen) {
-        return Deferred().reject("Cannot rollback on a closed connection").promise();
+        return defer().reject("Cannot rollback on a closed connection").promise();
     }
     if (this.transAnnidationLevel > 1) {
         this.transAnnidationLevel -= 1;
         this.transError = true;
-        return Deferred().resolve().promise();
+        return defer().resolve().promise();
     }
     if (this.transAnnidationLevel === 0) {
-        return Deferred().reject("Trying to rollBack but no transaction has been open").promise();
+        return defer().reject("Trying to rollBack but no transaction has been open").promise();
     }
 
     res = this.queryBatch('ROLLBACK;');
@@ -783,10 +784,10 @@ Connection.prototype.getSqlCallSPWithNamedParams = function (options) {
  * @param {string} options.spName
  * @param {SqlParameter[]} options.paramList
  * @param {boolean} [options.raw=false]
- * @returns {Tables[] [, Object]}
+ * @returns {Tables[] [Object]}
  */
 Connection.prototype.callSPWithNamedParams = function (options) {
-    var spDef = Deferred(),
+    var spDef = defer(),
         cmd = this.getSqlCallSPWithNamedParams(options);
     //noinspection JSUnresolvedFunction
     this.queryBatch(cmd, options.raw)
@@ -842,20 +843,20 @@ Connection.prototype.callSPWithNamedParams = function (options) {
  * @returns {TableDescriptor}
  */
 Connection.prototype.tableDescriptor = function (tableName) {
-    var res  = Deferred(),
+    var res  = defer(),
         that = this;
     this.queryBatch(
         'select 1 as dbo, ' +
-        'case when T.table_type=\'BASE TABLE\' then \'U\' else \'V\' end as xtype, ' +
-        'C.COLUMN_NAME as name, C.DATA_TYPE as \'type\', C.CHARACTER_MAXIMUM_LENGTH as max_length,' +
-        'C.NUMERIC_PRECISION as \'precision\', C.NUMERIC_SCALE as \'scale\', ' +
-        'case when C.IS_NULLABLE = \'YES\' then 1 else 0 end as \'is_nullable\', ' +
-        'case when C.COLUMN_KEY=\'PRI\' then 1 else 0 end as \'pk\' ' +
-        '  from INFORMATION_SCHEMA.tables T ' +
-        ' JOIN INFORMATION_SCHEMA.columns C ON C.table_schema=T.table_schema and C.table_name=T.table_name ' +
-        ' where T.table_schema=' + that.database + ' and T.table_name=\'' + tableName + '\''
+            'case when T.table_type=\'BASE TABLE\' then \'U\' else \'V\' end as xtype, ' +
+            'C.COLUMN_NAME as name, C.DATA_TYPE as \'type\', C.CHARACTER_MAXIMUM_LENGTH as max_length,' +
+            'C.NUMERIC_PRECISION as \'precision\', C.NUMERIC_SCALE as \'scale\', ' +
+            'case when C.IS_NULLABLE = \'YES\' then 1 else 0 end as \'is_nullable\', ' +
+            'case when C.COLUMN_KEY=\'PRI\' then 1 else 0 end as \'pk\' ' +
+            '  from INFORMATION_SCHEMA.tables T ' +
+            ' JOIN INFORMATION_SCHEMA.columns C ON C.table_schema=T.table_schema and C.table_name=T.table_name ' +
+            ' where T.table_schema=' + that.database + ' and T.table_name=\'' + tableName + '\''
     )
-    .then(function (result) {
+        .then(function (result) {
             if (result.length === 0) {
                 res.reject('Table named ' + tableName + ' does not exist in ' + that.server + ' - ' + that.database);
                 return;
@@ -876,10 +877,9 @@ Connection.prototype.tableDescriptor = function (tableName) {
             });
             res.resolve({tableName: tableName, xtype: xType, isDbo: isDbo, columns: result});
         },
-        function (err) {
-            res.reject(err);
-        }
-    );
+            function (err) {
+                res.reject(err);
+            });
     return res.promise();
 };
 
@@ -933,15 +933,17 @@ Connection.prototype.getFormatter = function () {
  * @returns {*}
  */
 Connection.prototype.run = function (script) {
-    var os = require('os');
+    var os = require('os'),
     //noinspection JSUnresolvedVariable
-    var lines = script.split(os.EOL);
-    var blocks = [];
-    var curr = '';
-    var first = true;
-    var that = this;
-    for (var i = 0; i < lines.length; i++) {
-        var s = lines[i];
+        lines = script.split(os.EOL),
+        blocks = [],
+        curr = '',
+        first = true,
+        that = this,
+        i,
+        s;
+    for (i = 0; i < lines.length; i++) {
+        s = lines[i];
         if (s.trim().toUpperCase() === 'GO') {
             blocks.push(curr);
             curr = '';
@@ -959,23 +961,22 @@ Connection.prototype.run = function (script) {
         blocks.push(curr);
     }
 
-    var def = Deferred();
-    var index = 0;
+    var def = defer(),
+        index = 0;
 
 
     function loopScript() {
         if (index === blocks.length) {
             def.resolve();
-        }
-        else {
+        } else {
             that.updateBatch(blocks[index])
-                .done(function () {
-                    index += 1;
-                    loopScript();
-                })
-                .fail(function (err) {
-                    def.reject(err);
-                });
+            .done(function () {
+                index += 1;
+                loopScript();
+            })
+            .fail(function (err) {
+                def.reject(err);
+            });
         }
     }
 

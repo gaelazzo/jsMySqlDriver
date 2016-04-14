@@ -18,7 +18,7 @@ var path = require("path");
  *  }
  */
 //PUT THE  FILENAME OF YOUR FILE HERE:
-var configName = path.join('test','db.json');
+var configName = path.join('test', 'db.json');
 var dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
@@ -92,7 +92,7 @@ describe('MySqlDriver ', function () {
 
     describe('setup dataBase', function () {
         it('should run the setup script', function (done) {
-            sqlConn.run(fs.readFileSync(path.join('test','setup.sql')).toString())
+            sqlConn.run(fs.readFileSync(path.join('test', 'setup.sql')).toString())
                 .done(function () {
                     expect(true).toBeTruthy();
                     done();
@@ -186,66 +186,88 @@ describe('MySqlDriver ', function () {
 
         it('select now() should give results', function (done) {
             sqlConn.queryBatch('SELECT now() as currtime')
-                .done(function (result) {
-                    expect(result).toBeDefined();
-                    done();
-                })
-                .fail(function (err) {
-                    expect(err).toBeUndefined();
-                    done();
-                });
+            .done(function (result) {
+                expect(result).toBeDefined();
+                done();
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            });
         });
 
 
         it('select * from table should give results', function (done) {
             sqlConn.queryBatch('select * from customer')
-                .done(function (result) {
-                    expect(result).toBeDefined();
-                    done();
-                })
-                .fail(function (err) {
-                    expect(err).toBeUndefined();
-                    done();
-                });
+            .done(function (result) {
+                expect(result).toBeDefined();
+                done();
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            });
         });
 
         it('Date should be given as objects', function (done) {
             sqlConn.queryBatch('SELECT * from customer')
-                .done(function (result) {
-                    _(result).forEach(function (r) {
-                        if (r.idcustomer) {
-                            expect(r.idcustomer).toEqual(jasmine.any(Number));
-                        }
-                        if (r.stamp) {
-                            expect(r.stamp).toEqual(jasmine.any(Date));
-                        }
-                    });
-                    done();
-                })
-                .fail(function (err) {
-                    expect(err).toBeUndefined();
-                    done();
+            .done(function (result) {
+                _(result).forEach(function (r) {
+                    if (r.idcustomer) {
+                        expect(r.idcustomer).toEqual(jasmine.any(Number));
+                    }
+                    if (r.stamp) {
+                        expect(r.stamp).toEqual(jasmine.any(Date));
+                    }
                 });
+                done();
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            });
         });
 
-        it('notify should be called from queryRaw when multiple result got', function (done) {
+        it('notify should be called from queryRaw when multiple result got (two select)', function (done) {
             var progressCalled, nResult = 0;
             sqlConn.queryBatch('select * from customer limit 5; select * from seller limit 10; ')
-                .progress(function (result) {
-                    expect(result).toBeDefined();
-                    nResult += 1;
-                    progressCalled = true;
-                })
-                .fail(function (err) {
-                    expect(err).toBeUndefined();
-                    done();
-                })
-                .done(function (result) {
-                    expect(nResult).toBe(1);
-                    expect(progressCalled).toBeTruthy();
-                    done();
-                });
+            .progress(function (result) {
+                expect(result).toBeDefined();
+                expect(result.length).toBe(5);
+                nResult += 1;
+                progressCalled = true;
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            })
+            .done(function (result) {
+                expect(result.length).toBe(10);
+                expect(nResult).toBe(1);
+                expect(progressCalled).toBeTruthy();
+                done();
+            });
         });
+
+        it('notify should be called from queryRaw when multiple result got (three select)', function (done) {
+            var len            = [];
+            sqlConn.queryBatch('select * from seller limit 1;select * from seller limit 3;select * from customer limit 5;'+
+                    'select * from seller limit 10;select * from customer limit 2;')
+            .progress(function (result) {
+                len.push(result.length)
+                return true;
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            })
+            .done(function (result) {
+                len.push(result.length)
+                expect(len).toEqual([1,3, 5, 10, 2]);
+                done();
+            });
+        });
+
     }, 3000);
 
 
