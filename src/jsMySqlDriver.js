@@ -637,13 +637,13 @@ Connection.prototype.getSelectCommand = function (options) {
     if (options.filter && !options.filter.isTrue) {
         selCmd += " WHERE " + formatter.conditionToSql(options.filter, options.environment);
     }
+    if (options.orderBy) {
+        selCmd += " ORDER BY " + options.orderBy;
+    }
     if (options.top) {
         selCmd += ' LIMIT ' + options.top + ' ';
     }
 
-    if (options.orderBy) {
-        selCmd += " ORDER BY " + options.orderBy;
-    }
     return selCmd;
 };
 
