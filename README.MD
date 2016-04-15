@@ -137,3 +137,6 @@ Runs a sql script, eventually composed of multiple blocks separed by GO lines
  * @param {string} script
 
 see test specs for examples of use
+
+
+![](https://travis-ci.org/gaelazzo/jsMySqlDriver.svg?branch=master)
