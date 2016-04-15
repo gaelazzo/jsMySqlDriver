@@ -1,11 +1,10 @@
-# jsSqlServerDriver
-Javascript Sql Server driver. Allows you to read/write and do anything you want with a MS Sql Server database using javascript.
+# jsMySqlDriver
+Javascript Sql Server driver. Allows you to read/write and do anything you want with a mySql database using javascript.
 Every command returns a promise of a [jQuery Deferred object](https://www.npmjs.com/package/JQDeferred)
 
 Some of the available method are
 
-## useSchema(schema) ##
-Change current used schema for this connection
+
 
 ## setTransactionIsolationLevel(isolationLevel) ##
 Sets the Transaction isolation level for current connection
