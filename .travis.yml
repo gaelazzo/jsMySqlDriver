@@ -19,7 +19,36 @@ before_install:
 - npm install -g grunt-cli
 
 install:
-#  - sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+#sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+#mit keyserver for backup
+#apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+
+#Debian, Ubuntu, and derivatives
+#MAIN SOURCE
+echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
+
+#Alpha channel
+#echo "deb http://download.mono-project.com/repo/debian alpha main" | tee /etc/apt/sources.list.d/mono-xamarin-alpha.list
+
+#Beta channel
+#echo "deb http://download.mono-project.com/repo/debian beta main" | tee /etc/apt/sources.list.d/mono-xamarin-beta.list
+
+#mod_mono (Ubuntu 13.10 and later, Debian 8.0 and later)
+#**IN ADDITION TO THE MAIN SOURCE**
+#echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+#libgdiplus (Debian 8.0 and later, NOT Ubuntu)
+#**IN ADDITION TO THE MAIN SOURCE**
+#echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+#Older Ubuntu releases (Ubuntu 12.10 and 12.04)
+#**IN ADDITION TO THE MAIN SOURCE**
+#echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+apt-get update
+apt-get install -y mono-complete fsharp nuget referenceassemblies-pcl
+
   - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy main' >> /etc/apt/sources.list.d/mono-xamarin.list"
   - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main' >> /etc/apt/sources.list.d/mono-xamarin.list"
   - sudo apt-get update
