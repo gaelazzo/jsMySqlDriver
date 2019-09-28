@@ -11,7 +11,7 @@
     "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
     "JQDeferred": "^2.1.0",
-    "edge": "~5.0.0",
+    "edge": "git://github.com/agracio/edge-js",
     "edge-db": "git://github.com/gaelazzo/edge-db",
     "edge-sql": "git://github.com/gaelazzo/edge-sql"
   },
