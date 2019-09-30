@@ -37,7 +37,6 @@ var mapIsolationLevels = {
  * @type SqlParameter
  */
 function SqlParameter() {
-
     /**
      * Optional parameter name
      * @type {string|undefined}
@@ -135,6 +134,7 @@ function Connection(options) {
      */
     this.edgeConnection = new EdgeConnection(this.adoString,'mySql');
 }
+
 
 Connection.prototype = {
     constructor: Connection

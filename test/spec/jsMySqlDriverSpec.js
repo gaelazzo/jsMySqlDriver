@@ -1,15 +1,16 @@
 /*globals describe,beforeEach,it,expect,jasmine,spyOn,afterEach,xit,progress*/
 
-'use strict';
-var $dq = require('jsDataQuery');
-var _ = require('lodash');
+"use strict";
+var $dq = require("jsDataQuery");
+var _ = require("lodash");
+
 var fs = require("fs");
 var path = require("path");
 
 /**
- * *****************************************************************************************
+ * ******************************************************************************************
  * VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT
- * *****************************************************************************************
+ * ******************************************************************************************
  * It's necessary, before start running the test, to create a file templated like:
  *  { "server": "db server address",
  *    "dbName": "database name",  //this must be an EMPTY database

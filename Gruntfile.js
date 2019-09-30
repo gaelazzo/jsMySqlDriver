@@ -28,8 +28,8 @@ module.exports = function (grunt) {
             },
 
             watch: {
-                files: ['src/*.js'],
-                tasks: ['karma:unit:run'],
+                files: ['src/*.js','test/spec/*.js'],
+                tasks: ['jasmine_node'],
                 options: {
                     livereload: true
                 }
@@ -73,4 +73,5 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test', ['jasmine_node:single']);
     grunt.registerTask('default', ['test']);
+    grunt.registerTask('watch', ['watch']);
 };
