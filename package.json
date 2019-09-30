@@ -10,7 +10,7 @@
     "lodash": "4.17.15",
     "JQDeferred": "^2.1.0",
     "edge-db": "git://github.com/gaelazzo/edge-db.git",
-    "edge-js": "git://github.com/agracio/edge-js.git",
+    "edge": "git://github.com/agracio/edge-js.git",
     "edge-sql": "git://github.com/gaelazzo/edge-sql.git",
     "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git"

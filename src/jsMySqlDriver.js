@@ -6,7 +6,7 @@
 var defer     = require("JQDeferred");
 var _         = require('lodash');
 var formatter = require('jsSqlServerFormatter');
-var edge      = require('edge-js');
+var edge      = require('edge');
 var EdgeConnection  = require("edge-sql").EdgeConnection;
 
 /**
