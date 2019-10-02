@@ -470,6 +470,16 @@ Connection.prototype.getDeleteCommand = function (options) {
 };
 
 /**
+ * Executes a series of sql update/insert/delete commands
+ * @method updateBatch
+ * @param {string} query
+ * @returns {*}
+ */
+Connection.prototype.updateBatch = function (query) {
+    return this.edgeConnection.updateBatch(query);
+}
+
+/**
  * Get the string representing an insert command
  * @method getInsertCommand
  * @param {string} table
