@@ -201,6 +201,19 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
 
 
 /**
+ * Gets data packets row at a time
+ * @method queryPackets
+ * @param {string} query
+ * @param {boolean} [raw=false]
+ * @param {number} [packSize=0]
+ * @returns {*}
+ */
+Connection.prototype.queryPackets = function (query, raw, packSize) {
+    return this.edgeConnection.queryPackets(query,raw,packSize);
+};
+
+
+/**
  * Check login/password, returns true if successful, false if user/password does not match
  * @param {string} login
  * @param {string} password
