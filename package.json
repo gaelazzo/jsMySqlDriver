@@ -1,7 +1,7 @@
 {
   "name": "jsMySqlDriver",
   "version": "1.0.1",
-  "description": "Javascrit Driver for MySql",
+  "description": "Javascript Driver for MySql",
   "main": "src/jsMySqlDriver.js",
   "scripts": {
     "test": "grunt test"

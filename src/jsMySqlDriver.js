@@ -93,6 +93,13 @@ function Connection(options) {
     this.defaultSchema = this.opt.defaultSchema || this.opt.user || 'DBO';
 
     /**
+     * Indicates the open/closed state of the underlying connection
+     * @property isOpen
+     * @type {boolean}
+     */
+    this.isOpen = false;
+
+    /**
      * Current schema in use for this connection
      * @property schema
      * @type {string}
@@ -185,7 +192,7 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
         return defer().reject(isolationLevel + " is not an allowed isolation level").promise();
     }
 
-    res = this.edgeConnection.queryBatch('SET TRANSACTION ISOLATION LEVEL ' + mappedIsolationLevels);
+    res = this.queryBatch('SET TRANSACTION ISOLATION LEVEL ' + mappedIsolationLevels);
     res.done(function () {
         that.isolationLevel = isolationLevel;
     });
@@ -258,14 +265,12 @@ Connection.prototype.open = function () {
 Connection.prototype.close = function () {
     var def  = defer(),
         that = this;
-    if (this.isOpen) {
-        this.edgeConnection.close()
-            .done(function () {
-                that.isOpen = false;
-                def.resolve();
-            });
+    if (this.edgeHandler !== null) {
+        return this.edgeConnection.close();
+    } else {
+        that.isOpen = false;
+        def.resolve();
     }
-    def.resolve();
     return def.promise();
 };
 
@@ -275,6 +280,21 @@ Connection.prototype.run = function (script) {
 
 
 
+
+/**
+ * Gets a table and returns each SINGLE row by notification. Could eventually return more than a table indeed
+ * For each table read emits a {meta:[column descriptors]} notification, and for each row of data emits a
+ *   if raw= false: {row:object read from db}
+ *   if raw= true: {row: [array of values read from db]}
+
+ * @method queryLines
+ * @param {string} query
+ * @param {boolean} [raw=false]
+ * @returns {*}
+ */
+Connection.prototype.queryLines = function (query, raw) {
+    return this.edgeConnection.queryLines(query,raw);
+}
 
 
 
@@ -297,7 +317,7 @@ Connection.prototype.beginTransaction = function (isolationLevel) {
     }
     return this.setTransactionIsolationLevel(isolationLevel)
         .then(function () {
-            var res = that.edgeConnection.queryBatch('START TRANSACTION;');
+            var res = that.queryBatch('START TRANSACTION;');
             res.done(function () {
                 that.transAnnidationLevel += 1;
                 that.transError = false;
@@ -305,6 +325,17 @@ Connection.prototype.beginTransaction = function (isolationLevel) {
             return res;
         });
 };
+
+/**
+ * Executes a sql command and returns all sets of results. Each Results is given via a notify or resolve
+ * @method queryBatch
+ * @param {string} query
+ * @param {boolean} [raw] if true, data are left in raw state and will be objectified by the client
+ * @returns {defer}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
+ */
+Connection.prototype.queryBatch = function (query, raw) {
+    return this.edgeConnection.queryBatch(query,raw);
+}
 
 /**
  * Commits a transaction
@@ -327,7 +358,7 @@ Connection.prototype.commit = function () {
     if (this.transError) {
         return this.rollBack();
     }
-    res = this.edgeConnection.queryBatch('COMMIT;');
+    res = this.queryBatch('COMMIT;');
     res.done(function () {
         that.transAnnidationLevel = 0;
     });
@@ -354,7 +385,7 @@ Connection.prototype.rollBack = function () {
         return defer().reject("Trying to rollBack but no transaction has been open").promise();
     }
 
-    res = this.edgeConnection.queryBatch('ROLLBACK;');
+    res = this.queryBatch('ROLLBACK;');
     res.done(function () {
         that.transAnnidationLevel = 0;
     });
@@ -533,7 +564,7 @@ Connection.prototype.callSPWithNamedParams = function (options) {
     var spDef = defer(),
         cmd = this.getSqlCallSPWithNamedParams(options);
     //noinspection JSUnresolvedFunction
-    this.edgeConnection.queryBatch(cmd, options.raw)
+    this.queryBatch(cmd, options.raw)
         .progress(function (result) {
             spDef.notify(result);
         })
@@ -588,7 +619,7 @@ Connection.prototype.callSPWithNamedParams = function (options) {
 Connection.prototype.tableDescriptor = function (tableName) {
     var res  = defer(),
         that = this;
-    this.edgeConnection.queryBatch(
+    this.queryBatch(
         'select 1 as dbo, ' +
             'case when T.table_type=\'BASE TABLE\' then \'U\' else \'V\' end as xtype, ' +
             'C.COLUMN_NAME as name, C.DATA_TYPE as \'type\', C.CHARACTER_MAXIMUM_LENGTH as max_length,' +
